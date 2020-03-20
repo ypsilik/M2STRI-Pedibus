@@ -1,0 +1,20 @@
+<%- include("_header") -%>
+<div class="container-fluid">
+    <h1>PEDIBUS - Enfant</h1>
+    <p id="readyState">readyState : <span id="rs">&nbsp;</span></p>
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Meteo -->
+            <h2>Meteo du jour</h2>
+            <img id="wicon" src="http://openweathermap.org/img/w/<%= model.icon %>.png" alt="Weather icon">
+            <p>Il fait  <%= model.temperature %> °C à Toulouse. Le temps est <%= model.description %>.</p>
+        </div>
+        <div class="col-md-8">
+            <!-- Maps -->
+            <div id="mapid"></div>
+            <script type="text/javascript" src='javascripts/mapsv2.js'></script>
+        </div>
+    </div>
+</div>
+   
+<%- include("_footer") -%>

@@ -1,0 +1,33 @@
+{
+  "name": "m2stri-pedibus",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ypsilik/M2STRI-Pedibus.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ypsilik/M2STRI-Pedibus/issues"
+  },
+  "homepage": "https://github.com/ypsilik/M2STRI-Pedibus#readme",
+  "dependencies": {
+    "ejs": "^3.0.1",
+    "express": "^4.17.1",
+    "leaflet": "^1.6.0",
+    "leaflet-realtime": "^2.2.0",
+    "leaflet-routing-machine": "^3.2.12",
+    "leaflet.locatecontrol": "^0.70.0",
+    "nodejs-websocket": "^1.7.2",
+    "ol": "^6.2.1",
+    "parcel-bundler": "^1.12.4",
+    "request": "^2.88.2",
+    "sqlite3": "^4.1.1"
+  }
+}
