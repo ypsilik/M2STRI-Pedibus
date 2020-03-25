@@ -1,0 +1,27 @@
+{
+  "name": "pedibus",
+  "version": "1.0.0",
+  "description": "A full-sized drag & drop JavaScript event calendar",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Bahia Lamy",
+  "license": "ISC",
+  "dependencies": {
+    "bootstrap": "^4.4.1",
+    "ejs": "^2.7.4",
+    "express": "^4.17.1",
+    "git": "^0.1.5",
+    "jquery": "^3.4.1",
+    "moment": "^2.24.0",
+    "nodejs": "0.0.0",
+    "sqlite3": "^4.1.1"
+  },
+  "directories": {
+    "example": "examples"
+  },
+  "devDependencies": {}
+}

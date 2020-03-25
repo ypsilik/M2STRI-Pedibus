@@ -1,0 +1,26 @@
+<%- include("_header") -%>
+
+<div class="container">
+    <div class="card bg-light">
+        <article class="card-body mx-auto" style="max-width: 400px;">
+            <h4 class="card-title mt-3 text-center">Créer un compte</h4>
+            <form action="/inscription" method="post">
+
+                <%= message %>
+                <%- include("_form_insc") -%>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary btn-block"> Créer un compte </button>
+                </div> <!-- form-group// -->
+                <p class="text-center">Vous avez déjà un compte ? <a href="/connexion">Connexion</a> </p>
+            </form>
+        </article>
+    </div> <!-- card.// -->
+
+</div>
+<!--container end.//-->
+
+
+
+
+<%- include("_footer") -%>

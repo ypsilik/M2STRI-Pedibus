@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Pedibus</title>
+  <link rel="stylesheet" href="/css/bootstrap.css">
+
+
+  <script src="/js/jquery-1.12.4.js"></script>
+  <link rel="stylesheet" href="/jquery-ui-1.12.1.custom/jquery-ui.css">
+  <script src="/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
+
+  <script>
+    $(function () {
+      $("#datepicker").datepicker();
+    });
+  </script>
+
+
+  <link href='/packages/core/main.css' rel='stylesheet' />
+  <link href='/packages/daygrid/main.css' rel='stylesheet' />
+
+  <script src='/packages/core/main.js'></script>
+  <script src='/packages/daygrid/main.js'></script>
+
+
+  <link href='/packages/list/main.css' rel='stylesheet' />
+
+  <script src='/packages/list/main.js'></script>
+
+  <script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var calendarEl = document.getElementById('calendar');
+
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        locales: ['frLocale'],
+        plugins: ['dayGrid'],
+        locale: 'fr',
+        defaultView: 'dayGridWeek',
+        weekends: false,
+        events: [
+          { // this object will be "parsed" into an Event Object
+            groupId: 'Pedibus matin', // a property!
+            title: 'Peidbus matin',
+            daysOfWeek: [ '1','2','3','4','5' ],
+            startTime: '07:00:00',
+            endTime: '08:00:00'
+          },
+          { // this object will be "parsed" into an Event Object
+            groupId: 'Pedibus soir', // a property!
+            title: 'Peidbus soir',
+            daysOfWeek: [ '1','2','3','4','5' ],
+            startTime: '16:30:00',
+            endTime: '17:30:00'
+          }
+
+        ]
+
+      });
+
+      calendar.render();
+    });
+
+  </script>
+
+</head>
+
+<body>
+
+  <div class="container">
