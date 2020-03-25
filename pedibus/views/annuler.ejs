@@ -1,1 +1,23 @@
-<form action="/annuler/<%= model.dep_ID %>" method="POST"><p><%= model.dep_ID %></p><input type="submit" value="Supprimer" class="btn btn-default btn-warning" /></form>
+
+<script>
+    // websocket connection
+    var idf = 0;    
+    if ('WebSocket' in window) {
+      var ws = new WebSocket("wss://127.0.0.1:8002/");
+      ws.onmessage = function (event) {
+        if (idf == 0) {
+          idf = event.data; // Récupération de l'identifiant
+        };
+      };
+    }
+    // Envoie de la localisation en cas de problème
+    function sendAlert() {     
+      // send msg to server
+      ws.send("Annulation de <%= model.nom %> <%= model.prenom %> pour le trajet du <%= model.date %>.");
+    }
+    </script>
+
+<form action="/annuler/<%= model.dep_ID %>" method="POST" onsubmit="sendAlert()">
+    <p>Voulez vous vraiment vous supprimer du déplacement du <%= model.date %> ?</p>
+    <input type="submit" value="Supprimer" class="btn btn-default btn-warning"/>
+</form>

@@ -1,1 +1,4 @@
-<form action="/participer/<%= model.dep_ID %>" method="POST"><p><%= model.dep_ID %></p><input type="submit" value="Participer" class="btn btn-default btn-warning" /></form>
+<form action="/participer/<%= model.dep_ID %>" method="POST">
+    <p>Voulez vous vraiment participer au trajet du <%= model.date %> ?</p>
+    <input type="submit" value="Participer" class="btn btn-default btn-warning" />
+</form>

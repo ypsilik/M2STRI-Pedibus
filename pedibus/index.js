@@ -6,9 +6,22 @@ var multer = require('multer');
 var upload = multer();
 var session = require('express-session');
 var cookieParser = require('cookie-parser');
+const request = require('request');
 
+var fs = require('fs');
+var http = require('http');
+var https = require('https');
+var privateKey  = fs.readFileSync('cert/selfsigned.key', 'utf8');
+var certificate = fs.readFileSync('cert/selfsigned.crt', 'utf8');
+var credentials = {key: privateKey, cert: certificate};
+
+
+const app= express();
+
+var httpServer = http.createServer(app);
+var httpsServer = https.createServer(credentials,  app);
 // Création du serveur Express
-const app = express();
+
 
 // Configuration du serveur
 app.set("view engine", "ejs");
@@ -23,6 +36,10 @@ app.use(upload.array());
 app.use(cookieParser());
 app.use(session({ secret: "Your secret key" }));
 
+// Weather API
+let apiKey = '3cfe554bf79498902f33af0ed6e4cf60';
+let city = 'toulouse';
+let url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=fr`;
 
 // Connexion à la base de donnée SQlite
 const db_name = path.join(__dirname, "data", "pedibus.db");
@@ -83,11 +100,13 @@ db.run(sql_create_venir, err => {
 });
 
 // Démarrage du serveur
-app.listen(3000, () => {
+// app.listen(3000, () => {
+//   console.log("Serveur démarré (http://localhost:3000/) !");
+// });
+
+httpsServer.listen(3000, () => {
   console.log("Serveur démarré (http://localhost:3000/) !");
 });
-
-
 app.get('/inscription', function (req, res) {
   res.render('inscription', { model: {}, message: " " });
 });
@@ -172,19 +191,39 @@ app.get("/", checkSignIn, (req, res) => {
   //res.render("index");
   const sql1 = "SELECT * FROM Deps, Membres, Venir WHERE Deps.dep_ID = Venir.dep_ID AND Venir.membre_ID = Membres.membre_ID ORDER BY date";
   const sql2 = "SELECT DISTINCT date,dep_ID FROM Deps";
+  var weatherToulouse;
   var resSQL1;
+  var resSQL2;
+
   db.all(sql1, [], (err, rows) => {
     if (err) {
       return console.error(err.message);
     }
-    resSQL1 = rows;;
+    resSQL1 = rows;
   });
   db.all(sql2, [], (err, rows) => {
     if (err) {
       return console.error(err.message);
     }
-    res.render("index", { modelAll: resSQL1, modelDist: rows });
+    resSQL2 = rows;
+    
   });
+
+    // Execution de la requete pour récuperer la météo
+    request(url, function (err, response, body) {
+      if (err) {
+          console.log('error:', err);
+      } else {
+          let weatherOutput = JSON.parse(body)
+          weatherToulouse = {
+              temperature: Math.round(`${weatherOutput.main.temp}`),
+              main: `${weatherOutput.weather[0].main}`,
+              description: `${weatherOutput.weather[0].description}`,
+              icon: `${weatherOutput.weather[0].icon}`
+          };
+          res.render("index", { modelAll: resSQL1, modelDist: resSQL2, model: weatherToulouse });
+      }
+    });
 });
 
 
@@ -203,7 +242,7 @@ app.get("/compte", checkSignIn,  (req, res) => {
 // GET /participer/:id
 app.get("/participer/:id", (req, res) => {
   const id = req.params.id;
-  const sql = "SELECT * FROM Venir WHERE dep_ID = ?";
+  const sql = "SELECT Venir.dep_ID, date FROM Venir JOIN Deps ON Venir.dep_ID=Deps.dep_ID WHERE Venir.dep_ID = ?";
   db.get(sql, id, (err, row) => {
     if (err) {
       return console.error(err.message);
@@ -244,15 +283,16 @@ app.post("/participer/:id", (req, res) => {
 
 // GET /annuler/:id
 app.get("/annuler/:id", (req, res) => {
-  const id = req.params.id;
-  const venir = [req.session.user.id, id, 1];
+  const venir = [req.session.user.id, req.params.id, 1];
   console.log(venir);
-  const sql = "SELECT * FROM Venir WHERE dep_ID = ? AND membre_ID = ? AND participe = ?";
+  const sql ="SELECT nom, prenom, date, Deps.dep_ID FROM Membres JOIN Venir ON Membres.membre_ID=Venir.membre_ID JOIN Deps ON Deps.dep_ID=Venir.dep_id WHERE Membres.membre_ID=? AND Deps.dep_ID=? AND participe = ? ";
+
   db.get(sql, venir, (err, row) => {
     if (err) {
       return console.error(err.message);
     }
     res.render("annuler", { model: row });
+    
   });
 });
 
@@ -276,72 +316,6 @@ app.use('/', function (err, req, res, next) {
   res.redirect('/connexion');
 });
 
-
-
-
-
-// GET /create
-app.get("/create", (req, res) => {
-  res.render("create", { model: {} });
-});
-
-// POST /create
-app.post("/create", (req, res) => {
-  const sql = "INSERT INTO Livres (Titre, Auteur, Commentaires) VALUES (?, ?, ?)";
-  const book = [req.body.Titre, req.body.Auteur, req.body.Commentaires];
-  db.run(sql, book, err => {
-    if (err) {
-      return console.error(err.message);
-    }
-    res.redirect("/livres");
-  });
-});
-
-// GET /edit/5
-app.get("/edit/:id", (req, res) => {
-  const id = req.params.id;
-  const sql = "SELECT * FROM Livres WHERE Livre_ID = ?";
-  db.get(sql, id, (err, row) => {
-    if (err) {
-      return console.error(err.message);
-    }
-    res.render("edit", { model: row });
-  });
-});
-
-// POST /edit/5
-app.post("/edit/:id", (req, res) => {
-  const id = req.params.id;
-  const book = [req.body.Titre, req.body.Auteur, req.body.Commentaires, id];
-  const sql = "UPDATE Livres SET Titre = ?, Auteur = ?, Commentaires = ? WHERE (Livre_ID = ?)";
-  db.run(sql, book, err => {
-    if (err) {
-      return console.error(err.message);
-    }
-    res.redirect("/livres");
-  });
-});
-
-// GET /delete/5
-app.get("/delete/:id", (req, res) => {
-  const id = req.params.id;
-  const sql = "SELECT * FROM Livres WHERE Livre_ID = ?";
-  db.get(sql, id, (err, row) => {
-    if (err) {
-      return console.error(err.message);
-    }
-    res.render("delete", { model: row });
-  });
-});
-
-// POST /delete/5
-app.post("/delete/:id", (req, res) => {
-  const id = req.params.id;
-  const sql = "DELETE FROM Livres WHERE Livre_ID = ?";
-  db.run(sql, id, err => {
-    if (err) {
-      return console.error(err.message);
-    }
-    res.redirect("/livres");
-  });
+app.get("/enfant", (req, res) => {
+        res.render("objet-enfant");
 });

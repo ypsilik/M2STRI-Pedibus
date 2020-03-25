@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Pedibus</title>
+  <link rel="stylesheet" href="/css/bootstrap.css">
+
+  <!-- CSS and JS files for maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+  integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+  crossorigin="" />
+  <!-- Style overwrite -->
+  <style type="text/css">
+  #mapid {
+    height: 400px;
+  }
+
+  /* Surcharge bouton géolocalisation enfant */
+  .leaflet-control-locate {
+    width: 100px;
+    height: 100px;
+  }
+
+  .leaflet-control-locate a,
+  .leaflet-control-locate a:hover {
+    width: 100px !important;
+    height: 100px !important;
+    background-color: crimson;
+  }
+
+  .fa {
+    width: 100px;
+    height: 100px;
+  }
+
+  /* FIN Surcharge bouton géolocalisation enfant  */
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@v0.70.0/dist/L.Control.Locate.min.css" />
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+  integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+  crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@v0.70.0/dist/L.Control.Locate.min.js"
+  charset="utf-8"></script>
+  <!-- End CSS and JS files for maps -->
+
+</head>
+
+<body>
+  <div class="container">
+<div class="container-fluid">
+            <!-- Maps -->
+            <div id="mapid"></div>
+            <script type="text/javascript" src='js/mapsv2.js'></script>
+    </div>
+</div>
