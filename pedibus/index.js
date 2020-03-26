@@ -7,19 +7,20 @@ var upload = multer();
 var session = require('express-session');
 var cookieParser = require('cookie-parser');
 const request = require('request');
+const moment = require('moment');
 
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
-var privateKey  = fs.readFileSync('cert/selfsigned.key', 'utf8');
+var privateKey = fs.readFileSync('cert/selfsigned.key', 'utf8');
 var certificate = fs.readFileSync('cert/selfsigned.crt', 'utf8');
-var credentials = {key: privateKey, cert: certificate};
+var credentials = { key: privateKey, cert: certificate };
 
 
-const app= express();
+const app = express();
 
 var httpServer = http.createServer(app);
-var httpsServer = https.createServer(credentials,  app);
+var httpsServer = https.createServer(credentials, app);
 // Création du serveur Express
 
 
@@ -99,18 +100,26 @@ db.run(sql_create_venir, err => {
   console.log("Création réussie de la table 'Venir'");
 });
 
-// Démarrage du serveur
+
+
 // app.listen(3000, () => {
 //   console.log("Serveur démarré (http://localhost:3000/) !");
 // });
 
+// Démarrage du serveur
 httpsServer.listen(3000, () => {
   console.log("Serveur démarré (http://localhost:3000/) !");
 });
+
+
+
+
+// GET /inscription
 app.get('/inscription', function (req, res) {
   res.render('inscription', { model: {}, message: " " });
 });
 
+// POST /inscription
 app.post('/inscription', function (req, res) {
   const sql1 = "SELECT * FROM Membres WHERE mail = ?";
   const mel = req.body.mail;
@@ -118,7 +127,7 @@ app.post('/inscription', function (req, res) {
   const mb = [req.body.mail, req.body.nom, req.body.prenom, req.body.mdp];
   if (!req.body.mail || !req.body.nom || !req.body.prenom || !req.body.mdp) {
     res.status("400");
-    res.send("Invalid details!");
+    res.render('inscription', { model: {}, message: "Remplir tous les champs" });
   } else {
     db.get(sql1, mel, (err, rows) => {
       if (rows != null) {
@@ -143,6 +152,7 @@ app.post('/inscription', function (req, res) {
 });
 
 
+// Vérifie si l'utilisateur est connecté
 function checkSignIn(req, res, next) {
   if (req.session.user) {
     next();     //If session exists, proceed to page
@@ -153,27 +163,69 @@ function checkSignIn(req, res, next) {
   }
 }
 
-
+// GET /connexion
 app.get('/connexion', function (req, res) {
-  res.render('connexion',{ model: {}, message: " " });
+
+  // Ajouter date
+const sqlInsertDate = "INSERT INTO Deps (date) VALUES (?)";
+const sqlSelectDate = "SELECT date FROM Deps";
+var tomorrow;
+var dateExiste = 0;
+
+
+db.all(sqlSelectDate, [], (err, rows) => {
+  console.log(rows);
+  for (i = 0; i < 5; i++) {
+    tomorrow = moment().add(i, 'day').format('DD/MM/YYYY');
+    console.log(tomorrow);
+    rows.forEach(row => {
+      console.log(row);
+      console.log("row.date: " + row.date);
+      if (row.date == tomorrow) {
+        dateExiste = 1;
+        console.log(dateExiste);
+      };
+    });
+    if (!dateExiste) {
+      db.run(sqlInsertDate, tomorrow, err => {
+        if (err) {
+          return console.error(err.message);
+        }
+
+      });
+    }
+    dateExiste = 0;
+  }
+
+});
+  res.render('connexion', { model: {}, message: " " });
 });
 
+// POST /connexion
 app.post('/connexion', function (req, res) {
   const sql1 = "SELECT * FROM Membres WHERE mail = ?";
-  const mail = req.body.mail;
+  const mel = req.body.mail;
   if (!req.body.mail || !req.body.mdp) {
     res.render('connexion', { model: {}, message: "Entrez le mail ET le mot de passe" });
   } else {
-    db.get(sql1, mail, (err,rows) => {
-      if (rows.mail === req.body.mail && rows.mdp === req.body.mdp) {
-        var user = { id: rows.membre_ID, password: rows.mdp }
-        req.session.user = user;
-        res.redirect('/');
+    db.get(sql1, mel, (err, rows) => {
+      if (rows == null) {
+        res.render('connexion', {
+          model: {}, message: "Entrez des identifiants valides"
+        });
       } else {
-        res.render('connexion', { model: {}, message: "Invalid credentials!" });
+        if (rows.mail === req.body.mail && rows.mdp === req.body.mdp) {
+          var user = { id: rows.membre_ID, password: rows.mdp }
+          req.session.user = user;
+          res.redirect('/');
+        } else {
+          res.render('connexion', { model: {}, message: "Entrez des identifiants valides." });
+        }
       }
-    });
+      
     
+    });
+
   }
 });
 
@@ -187,13 +239,20 @@ app.get('/deconnexion', function (req, res) {
 
 // GET /
 app.get("/", checkSignIn, (req, res) => {
-  // res.send("Bonjour le monde...");
-  //res.render("index");
-  const sql1 = "SELECT * FROM Deps, Membres, Venir WHERE Deps.dep_ID = Venir.dep_ID AND Venir.membre_ID = Membres.membre_ID ORDER BY date";
-  const sql2 = "SELECT DISTINCT date,dep_ID FROM Deps";
+  const sql1 = "SELECT * FROM Deps, Membres, Venir WHERE Deps.dep_ID = Venir.dep_ID AND Venir.membre_ID = Membres.membre_ID";
+  const sql2 = "SELECT DISTINCT date,dep_ID FROM Deps WHERE date BETWEEN ? AND ? ORDER BY date";
+  const sql3 = "SELECT * FROM Membres WHERE membre_ID = ?";
+  
+  const id = req.session.user.id;
+
+  const now = moment().format('DD/MM/YYYY');
+  const end = moment().add('5', 'day').format('DD/MM/YYYY');
+  const d = [now, end];
+
   var weatherToulouse;
   var resSQL1;
   var resSQL2;
+  var resSQL3;
 
   db.all(sql1, [], (err, rows) => {
     if (err) {
@@ -201,34 +260,40 @@ app.get("/", checkSignIn, (req, res) => {
     }
     resSQL1 = rows;
   });
-  db.all(sql2, [], (err, rows) => {
+  db.all(sql2, d, (err, rows) => {
     if (err) {
       return console.error(err.message);
     }
     resSQL2 = rows;
-    
   });
 
-    // Execution de la requete pour récuperer la météo
-    request(url, function (err, response, body) {
-      if (err) {
-          console.log('error:', err);
-      } else {
-          let weatherOutput = JSON.parse(body)
-          weatherToulouse = {
-              temperature: Math.round(`${weatherOutput.main.temp}`),
-              main: `${weatherOutput.weather[0].main}`,
-              description: `${weatherOutput.weather[0].description}`,
-              icon: `${weatherOutput.weather[0].icon}`
-          };
-          res.render("index", { modelAll: resSQL1, modelDist: resSQL2, model: weatherToulouse });
-      }
-    });
+  db.get(sql3, id, (err, rows) => {
+    if (err) {
+      return console.error(err.message);
+    }
+    resSQL3 = rows;
+  });
+
+  // Execution de la requete pour récuperer la météo
+  request(url, function (err, response, body) {
+    if (err) {
+      console.log('error:', err);
+    } else {
+      let weatherOutput = JSON.parse(body)
+      weatherToulouse = {
+        temperature: Math.round(`${weatherOutput.main.temp}`),
+        main: `${weatherOutput.weather[0].main}`,
+        description: `${weatherOutput.weather[0].description}`,
+        icon: `${weatherOutput.weather[0].icon}`
+      };
+      res.render("index", { modelAll: resSQL1, modelDist: resSQL2, modelUser: resSQL3, model: weatherToulouse });
+    }
+  });
 });
 
 
 // GET /compte
-app.get("/compte", checkSignIn,  (req, res) => {
+app.get("/compte", checkSignIn, (req, res) => {
   const id = req.session.user.id;
   const sql = "SELECT * FROM Deps, Membres, Venir WHERE Deps.dep_ID = Venir.dep_ID AND Venir.membre_ID = Membres.membre_ID AND Membres.membre_ID = ?";
   db.all(sql, id, (err, row) => {
@@ -242,7 +307,7 @@ app.get("/compte", checkSignIn,  (req, res) => {
 // GET /participer/:id
 app.get("/participer/:id", (req, res) => {
   const id = req.params.id;
-  const sql = "SELECT Venir.dep_ID, date FROM Venir JOIN Deps ON Venir.dep_ID=Deps.dep_ID WHERE Venir.dep_ID = ?";
+  const sql = "SELECT dep_ID, date FROM Deps WHERE dep_ID = ?";
   db.get(sql, id, (err, row) => {
     if (err) {
       return console.error(err.message);
@@ -261,9 +326,9 @@ app.post("/participer/:id", (req, res) => {
   console.log(venir);
   const sql1 = "SELECT * FROM Venir WHERE membre_ID = ? AND dep_ID = ?";
   const sql2 = "INSERT INTO Venir (participe, membre_ID, dep_ID) VALUES (?, ?, ?)";
-  const sql3 = "UPDATE Venir SET participe = ? WHERE dep_ID = ? AND membre_ID = ?";
-  db.get(sql1, existe, (err,row) => {
-    if(row != null){
+  const sql3 = "UPDATE Venir SET participe = ? WHERE membre_ID = ? AND dep_ID = ?";
+  db.get(sql1, existe, (err, row) => {
+    if (row != null) {
       db.run(sql3, venir, err => {
         if (err) {
           return console.error(err.message);
@@ -285,21 +350,21 @@ app.post("/participer/:id", (req, res) => {
 app.get("/annuler/:id", (req, res) => {
   const venir = [req.session.user.id, req.params.id, 1];
   console.log(venir);
-  const sql ="SELECT nom, prenom, date, Deps.dep_ID FROM Membres JOIN Venir ON Membres.membre_ID=Venir.membre_ID JOIN Deps ON Deps.dep_ID=Venir.dep_id WHERE Membres.membre_ID=? AND Deps.dep_ID=? AND participe = ? ";
+  const sql = "SELECT nom, prenom, date, Deps.dep_ID FROM Membres JOIN Venir ON Membres.membre_ID=Venir.membre_ID JOIN Deps ON Deps.dep_ID=Venir.dep_id WHERE Membres.membre_ID=? AND Deps.dep_ID=? AND participe = ? ";
 
   db.get(sql, venir, (err, row) => {
     if (err) {
       return console.error(err.message);
     }
     res.render("annuler", { model: row });
-    
+
   });
 });
 
 // POST /annuler/:id
 app.post("/annuler/:id", (req, res) => {
   const id = req.params.id;
-  const venir = [0,id,req.session.user.id];
+  const venir = [0, id, req.session.user.id];
   const sql = "UPDATE Venir SET participe = ? WHERE dep_ID = ? AND membre_ID = ?";
   db.run(sql, venir, err => {
     if (err) {
@@ -317,5 +382,5 @@ app.use('/', function (err, req, res, next) {
 });
 
 app.get("/enfant", (req, res) => {
-        res.render("objet-enfant");
+  res.render("objet-enfant");
 });

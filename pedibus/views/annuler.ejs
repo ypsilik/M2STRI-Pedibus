@@ -17,7 +17,13 @@
     }
     </script>
 
+<%- include("_header") -%>
+<div class="container bg-light ">
+
 <form action="/annuler/<%= model.dep_ID %>" method="POST" onsubmit="sendAlert()">
-    <p>Voulez vous vraiment vous supprimer du déplacement du <%= model.date %> ?</p>
-    <input type="submit" value="Supprimer" class="btn btn-default btn-warning"/>
+  <p>Voulez vous vraiment vous supprimer du déplacement du <%= model.date %> ?</p>
+    <input type="submit" value="Annuler" class="btn btn-default btn-warning"/>
 </form>
+<br>
+</div>
+<%- include("_footer") -%>

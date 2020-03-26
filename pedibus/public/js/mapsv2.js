@@ -47,6 +47,7 @@ var controlRoute = L.Routing.control({
     { latLng: L.latLng(43.632736, 1.43157), name: "Jules ferry" }
   ],
   language: 'fr',
+  show: false,
   draggableWaypoints: false,
   addWaypoints: false,
   summaryTemplate: '<h2>Itinéraire Jeanne d\'arc <-> Ecole élémentaire Jules ferry</h2><h3>{distance}, {time}</h3>'
@@ -66,7 +67,7 @@ if ('WebSocket' in window) {
 
 // Envoie de la localisation en cas de problème
 function onLocationFound(e) {
-  L.marker(e.latlng).addTo(mymap).bindPopup("Problème Problème !!!").openPopup();
+  L.marker(e.latlng).addTo(mymap).bindPopup("Alerte !!!").openPopup();
   document.body.style.background = '#e74c3c';
   // send msg to server
   ws.send("L'enfant avec l'identifiant : " + idf + " à un problème en : " + e.latlng);

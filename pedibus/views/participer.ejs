@@ -1,4 +1,10 @@
-<form action="/participer/<%= model.dep_ID %>" method="POST">
+<%- include("_header") -%>
+<div class="container bg-light">
+<form action="/participer/<%= model.dep_ID %>" method="POST" class=>
     <p>Voulez vous vraiment participer au trajet du <%= model.date %> ?</p>
-    <input type="submit" value="Participer" class="btn btn-default btn-warning" />
+    <input type="submit" value="Participer" class="btn btn-default btn-success" />
 </form>
+<br>
+</div>
+
+<%- include("_footer") -%>

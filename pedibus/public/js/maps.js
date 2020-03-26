@@ -47,6 +47,7 @@ var controlRoute = L.Routing.control({
     { latLng: L.latLng(43.632736, 1.43157), name: "Jules ferry" }
   ],
   language: 'fr',
+  show: false,
   draggableWaypoints: false,
   addWaypoints: false,
   summaryTemplate: '<h2>Itinéraire Jeanne d\'arc <-> Ecole élémentaire Jules ferry</h2><h3>{distance}, {time}</h3>'
