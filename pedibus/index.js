@@ -246,7 +246,7 @@ app.get("/", checkSignIn, (req, res) => {
   const id = req.session.user.id;
 
   const now = moment().format('DD/MM/YYYY');
-  const end = moment().add('5', 'day').format('DD/MM/YYYY');
+  const end = moment().add('4', 'day').format('DD/MM/YYYY');
   const d = [now, end];
 
   var weatherToulouse;
